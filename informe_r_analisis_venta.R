@@ -2,6 +2,10 @@
 library(tidyverse)
 library(ggplot2)
 
+source("./global/funciones_eda/funciones_eda.R")
+source("./global/funciones_graficos/funciones_graficos.R")
+source("./global/funciones_limpieza/limpieza.R")
+
 #0 Definición del problema/objetivo de investigación (ficticia).
 
 # 0.1 La empresa "IquiqueMiami LTDA." ha observado fluctuaciones significativas en sus ingresos durante 
@@ -78,65 +82,68 @@ library(ggplot2)
 
 
 # 2. Preprocesamiento de Datos: Descripción detallada de los pasos tomados para limpiar y preparar los datos para el análisis utilizando Tidyverse.
-datos <- read_delim("sales.csv", delim = ",") # Usar read_delim con el delimitador especificado
+datos <- read_delim("./data/sales.csv", delim = ",") # Usar read_delim con el delimitador especificado
+
+# Quitar espacios de los nombres de las columnas (reemplazar los pacios por guion bajo)
+datos <- quitar_espacios_nombres(datos)
+
+
+# 2.1. Base de datos reducida
+datos_reducidos <- base_datos_reducida(datos, "Date", c("State", "Market", "Market_Size"))
+print(datos_reducidos)
 
 # Inspeccionamos las primeras filas de los datos
-head(datos)
+head(datos_reducidos)
 
 
-# Resumen de estructura de datos (imprime algunos datos y tipos de datos)
-glimpse(datos)
+# Opcion 1: Resumen de estructura de datos (imprime algunos datos y tipos de datos)
+glimpse(datos_reducidos)
 
-# Inspeccionar y limpiar los datos si es necesario (imprime la estructura y los tipos de datos)
-str(datos)
+# Opcion 2: Inspeccionar (imprime la estructura y los tipos de datos)
+str(datos_reducidos)
+
+# Opcion 3: Tambien en forma opcional y para mejorar visualización de los datos anteriores, se hace uso de la funcion validar y verificar
+# 1. Validar y verificar los datos
+validar_datos(datos_reducidos)
 
 # 3. Análisis Exploratorio de Datos: Implementación de códigos en R para explorar los datos. Esto puede incluir visualizaciones de datos, medidas de tendencia central, etc. importación de datos
 
-# 3.1. resumen general/total estadísticos de todos los datos presentes en el dataset
-summary(datos)
+# 3.1. Resumen numérico de las variables Sales y Profit
+resumen <- resumen_numerico(datos_reducidos)
+print(resumen)
 
 
-# 3.2. Comprobar si hay valores faltantes en las columnas importantes
-na_count <- sapply(datos, function(x) sum(is.na(x)))
+# 3.1. Estadísticas descriptivas por grupo (State)
+estadisticas <- estadisticas_por_grupo(datos, "State")
+print(estadisticas)
+
+
+# 3.3. resumen general/total estadísticos de todos los datos presentes en el dataset
+summary(datos_reducidos)
+
+
+
+
+# 3.3. Comprobar si hay valores faltantes en las columnas importantes
+na_count <- sapply(datos_reducidos, function(x) sum(is.na(x)))
 na_count
 
-# 3.3. Comprobar si hay valores faltantes en las columnas importantes seleccionadas que exige el informe.
-sum(is.na(datos))
-sum(is.na(datos$Profit))
-sum(is.na(datos$Sales))
-sum(is.na(datos$COGS))
+# 3.4. Comprobar si hay valores faltantes en las columnas importantes seleccionadas que exige el informe.
+sum(is.na(datos_reducidos))
+sum(is.na(datos_reducidos$Profit))
+sum(is.na(datos_reducidos$Sales))
+sum(is.na(datos_reducidos$COGS))
 
+# 3.5. Ya realizado la comprobación de las variables importanes seleccionadas, tambien se hace uso de función para tomar todas las variables y limpiar NA del objeto DF
+
+datos_limpios <- limpiar_datos_nulos(datos)
+print(datos_limpios)
 
 # 3.4. Histograma de Profit
-ggplot(datos, aes(x = Profit)) +
-  geom_histogram(bins = 30, fill = "blue") +
-  ggtitle("Histograma de Profit")
+crear_grafico(data = datos_limpios, tipo = "histograma", x_var = "Profit", title = "Histograma de Profit", x_label = "Profit", y_label = "Frecuencia", bins = 30)
 
 # 3.5. Boxplot de Sales
-ggplot(datos, aes(y = Sales)) +
-  geom_boxplot(fill = "green") +
-  ggtitle("Boxplot de Sales")
+crear_grafico(data = datos_limpios, tipo = "boxplot", y_var = "Sales", title = "Boxplot de Sales", y_label = "Sales")
 
 # 3.6. Boxplot de Total Expenses por Market
-ggplot(datos, aes(x = Market, y = `Total Expenses`)) +
-  geom_boxplot(fill = "cyan", color = "black") +
-  ggtitle("Boxplot de Total Expenses por Market") +
-  xlab("Market") +
-  ylab("Total Expenses")
-
-# 4 Preprocesamiento de Datos (formateo de solamente fecha, ya que la fecha incluye horas, minutos y segundos)
-datos <- datos %>%
-  mutate(fecha = as.Date(fecha, format = "%d-%m-%Y")) %>% # Convertir la columna 'fecha' al formato de fecha (no incluye hh:mm:ss)
-  filter(!is.na(precio)) %>% # Eliminar filas donde el precio es NA
-  arrange(desc(precio)) # Ordenar los datos por precio de forma descendente
-
-
-
-# 4. Modelado de Datos: Aplicación de técnicas de modelado de datos y algoritmos de aprendizaje automático, si corresponde.
-
-
-
-
-
-#5. Interpretación de Resultados: Discusión de los resultados del análisis y su relevancia para los objetivos establecidos en la introducción.
-
+crear_grafico(data = datos_limpios, tipo = "boxplot", x_var = "Market", y_var = "Total_Expenses", title = "Boxplot de Total Expenses por Market", x_label = "Market", y_label = "Total Expenses")
