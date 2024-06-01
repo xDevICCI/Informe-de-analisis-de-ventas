@@ -22,8 +22,8 @@ resumen_numerico <- function(data) {
 
 # Función para crear una base de datos reducida
 base_datos_reducida <- function(data, date_var = "Date", group_vars = NULL) {
-  # Asegurarse de que la variable Date esté en formato de fecha (FORMATO DD-MM-YYYY)
-  data <- data %>% mutate(across(all_of(date_var), as.Date, format = "%Y-%m-%d"))
+  # Filtrar filas con fechas válidas
+  data <- data %>% filter(!is.na(!!sym(date_var)))
   
   # Filtrar solo las columnas que existen en el data frame
   valid_group_vars <- group_vars[group_vars %in% colnames(data)]
@@ -39,6 +39,7 @@ base_datos_reducida <- function(data, date_var = "Date", group_vars = NULL) {
   
   return(data_reducida)
 }
+
 
 # Función para calcular estadísticas descriptivas por grupo
 estadisticas_por_grupo <- function(data, group_var) {
