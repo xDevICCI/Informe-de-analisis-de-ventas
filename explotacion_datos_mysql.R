@@ -23,23 +23,15 @@ countries_data <- dbGetQuery(con, "SELECT * FROM countries")
 sales_data <- sales_data %>% 
   left_join(countries_data, by = c("country_id" = "id"))
 
+# Crear tabla resumen
+resumen <- crear_tabla_resumen(sales_data)
+resumen
 
+# Crear gráficos
+crear_grafico(sales_data, "barras", "name", "total_revenue")
+crear_grafico(sales_data, "dispersión", "unit_price", "units_sold")
+crear_grafico(sales_data, "histograma", "total_profit", binwidth = 10000)
 
-# Gráfico de barras de ingresos totales por país
-ggplot(sales_data, aes(x = name, y = total_revenue)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Ingresos Totales por País", x = "País", y = "Ingresos Totales") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-# Gráfico de dispersión de precio unitario vs. unidades vendidas
-ggplot(sales_data, aes(x = unit_price, y = units_sold)) +
-  geom_point() +
-  labs(title = "Precio Unitario vs. Unidades Vendidas", x = "Precio Unitario", y = "Unidades Vendidas")
-
-# Histograma de beneficios totales
-ggplot(sales_data, aes(x = total_profit)) +
-  geom_histogram(binwidth = 10000, fill = "blue", color = "black") +
-  labs(title = "Distribución de Beneficios Totales", x = "Beneficios Totales", y = "Frecuencia")
 
 
 

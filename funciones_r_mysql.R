@@ -30,6 +30,27 @@ procesar_datos <- function(sales_data, countries_data) {
 }
 
 
+# Función para calcular la moda
+calcular_moda <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# Función para crear una tabla resumen de estadísticas
+crear_tabla_resumen <- function(data) {
+  resumen <- data %>%
+    summarise(across(where(is.numeric), list(
+      media = ~ mean(.x, na.rm = TRUE),
+      mediana = ~ median(.x, na.rm = TRUE),
+      varianza = ~ var(.x, na.rm = TRUE),
+      desviacion_estandar = ~ sd(.x, na.rm = TRUE),
+      moda = ~ calcular_moda(.x)
+    )))
+  
+  return(resumen)
+}
+
+
 analizar_datos <- function(data) {
   summary_stats <- data %>%
     summarise(total_revenue = sum(total_revenue),
@@ -40,13 +61,25 @@ analizar_datos <- function(data) {
   return(summary_stats)
 }
 
-
-crear_grafico_ingresos <- function(data) {
-  p <- ggplot(data, aes(x = name, y = total_revenue)) +
-    geom_bar(stat = "identity") +
-    labs(title = "Ingresos Totales por País", x = "País", y = "Ingresos Totales") +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1))
-  return(p)
+# Función para crear diferentes tipos de gráficos
+crear_grafico <- function(data, tipo, x, y = NULL, binwidth = NULL) {
+  if (tipo == "barras") {
+    p <- ggplot(data, aes_string(x = x, y = y)) +
+      geom_bar(stat = "identity") +
+      labs(title = paste("Gráfico de barras de", y, "por", x), x = x, y = y) +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  } else if (tipo == "dispersión") {
+    p <- ggplot(data, aes_string(x = x, y = y)) +
+      geom_point() +
+      labs(title = paste("Gráfico de dispersión de", x, "vs.", y), x = x, y = y)
+  } else if (tipo == "histograma") {
+    p <- ggplot(data, aes_string(x = x)) +
+      geom_histogram(binwidth = binwidth, fill = "blue", color = "black") +
+      labs(title = paste("Histograma de", x), x = x, y = "Frecuencia")
+  } else {
+    stop("Tipo de gráfico no soportado.")
+  }
+  print(p)
 }
 
 
