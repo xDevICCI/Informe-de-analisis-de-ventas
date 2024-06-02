@@ -91,6 +91,7 @@ crear_grafico <- function(data, tipo, x, y = NULL, binwidth = NULL) {
 }
 
 
+
 analisis_ventas <- function(dbname, host, port, user, password, unix_socket) {
   # Conectar a la base de datos
   con <- conectar_db(dbname, host, port, user, password, unix_socket)
@@ -115,5 +116,36 @@ analisis_ventas <- function(dbname, host, port, user, password, unix_socket) {
   
   # Devolver el resumen y el gráfico
   return(list(resumen = resumen, grafico = grafico))
+}
+
+
+analisis_complejo <- function(sales_data, orders_data, items_data, countries_data, filter_threshold, summarise_column) {
+  # Unir las tablas
+  data <- sales_data %>%
+    inner_join(orders_data, by = c("order_id" = "id")) %>%
+    inner_join(items_data, by = c("item_id" = "id")) %>%
+    inner_join(countries_data, by = c("country_id" = "id"))
+  
+  # Convertir order_date a clase Date y agregar columnas de año y mes
+  data <- data %>%
+    mutate(order_date = as.Date(order_date),
+           year = year(order_date),
+           month = floor_date(order_date, "month"))
+  
+  # Filtrar filas según un umbral
+  filtered_data <- data %>%
+    filter(.data[[summarise_column]] > filter_threshold)
+  
+  # Agrupar y resumir los datos
+  summary_data <- filtered_data %>%
+    group_by(year, item_type) %>%
+    summarise(total = sum(.data[[summarise_column]], na.rm = TRUE)) %>%
+    arrange(year, desc(total))
+  
+  # Crear un gráfico de líneas
+  ggplot(summary_data, aes(x = year, y = total, color = item_type)) +
+    geom_line() +
+    labs(title = "Análisis Complejo de Ventas", x = "Año", y = "Total") +
+    theme_minimal()
 }
 
