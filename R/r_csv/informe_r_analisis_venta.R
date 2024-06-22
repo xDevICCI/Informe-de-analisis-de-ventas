@@ -56,11 +56,22 @@ sum(is.na(datos$Total_Profit))
 datos_limpios <- limpiar_datos_nulos(datos)
 print(datos_limpios)
 
+# Identificación de outliers basada en la desviación estándar
+mean_revenue <- mean(datos_limpios$Total_Revenue, na.rm = TRUE)
+sd_revenue <- sd(datos_limpios$Total_Revenue, na.rm = TRUE)
+datos_limpios %>%
+  filter(abs(Total_Revenue - mean_revenue) > 3 * sd_revenue) %>%
+  dplyr::select(Total_Revenue) %>%
+  dplyr::arrange(desc(Total_Revenue)) %>%
+  print()
+
 # Visualizaciones
 crear_grafico_dinamico(data = datos_limpios, tipo_grafico = "histograma", x_var = "Total_Profit", title = "Histograma de Profit", x_label = "Profit", y_label = "Frecuencia", bins = 30)
 crear_grafico_dinamico(data = datos_limpios, tipo_grafico = "boxplot", x_var = "Total_Cost", title = "Boxplot de Total Cost", x_label = "Total Cost", y_label = "Valores")
 crear_grafico_dinamico(data = datos_limpios, tipo_grafico = "boxplot", x_var = "Region", y_var = "Total_Revenue", title = "Boxplot de Total Revenue por Region", x_label = "Region", y_label = "Total Revenue")
 crear_grafico_dinamico(data = datos_limpios, tipo_grafico = "line", date_var = "Order_Date", units_var = "Units_Sold", title = "Total Units Sold por Mes", x_label = "Month", y_label = "Total Units Sold")
+# Boxplot de Total Revenue para identificar outliers
+crear_grafico(datos_limpios, tipo = "boxplot", y_var = "Total_Revenue", title = "Outliers en Total Revenue", y_label = "Total Revenue")
 
 # Resumen por grupo usando dplyr
 resumen_por_region <- datos %>%
