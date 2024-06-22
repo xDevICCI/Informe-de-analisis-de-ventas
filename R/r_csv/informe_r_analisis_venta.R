@@ -3,6 +3,9 @@ library(tidyverse)
 library(ggplot2)
 library(skimr)
 library(dplyr)
+# Instalar el paquete reshape2 si aún no está instalado
+if (!require(reshape2)) install.packages("reshape2", dependencies = TRUE)
+library(reshape2)
 # Visualizar la matriz de correlación usando ggplot2
 library(corrplot)
 # Cargar funciones personalizadas
@@ -84,6 +87,29 @@ print(resumen_por_region)
 correlaciones <- cor(datos %>% select_if(is.numeric))
 
 corrplot(correlaciones, method = "circle")
+
+
+# Calcular correlaciones por regiones
+datos %>%
+  group_by(Region) %>%
+  summarise(correlation = cor(Total_Revenue, Units_Sold, use = "complete.obs")) %>%
+  ggplot(aes(x = Region, y = correlation)) + 
+  geom_col() +
+  labs(title = "Correlación de Ingresos y Unidades Vendidas por Región")
+
+
+
+# Usar pivot_longer en lugar de melt para preparar los datos para ggplot2
+cor_data <- as.data.frame(correlaciones)
+cor_data$variable <- rownames(cor_data)
+cor_data_long <- pivot_longer(cor_data, cols = -variable, names_to = "Var2", values_to = "value")
+
+# Crear el mapa de calor con ggplot2
+ggplot(cor_data_long, aes(x = variable, y = Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(midpoint = 0, low = "blue", high = "red", mid = "white") +
+  theme_minimal() +
+  labs(fill = "Coeficiente de Correlación")
 
 
 
