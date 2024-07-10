@@ -35,23 +35,11 @@ analizar_dataset <- function(file_path) {
   # Quitar espacios de los nombres de las columnas
   names(datos) <- gsub(" ", "_", names(datos))
   
-  # Verificar si hay valores nulos
-  print("Valores nulos en el dataset:")
-  print(colSums(is.na(datos)))
-  
   # Tomar una muestra aleatoria de 100,000 registros para reducir el uso de memoria
   set.seed(123)
   if (nrow(datos) > 100000) {
     datos <- datos %>% sample_n(100000)
   }
-  
-  # Mostrar las primeras filas del dataset
-  print("Primeras filas del dataset:")
-  print(head(datos))
-  
-  # Descripción estadística del dataset
-  print("Descripción estadística del dataset:")
-  print(summary(datos))
   
   # Resumen por región y tipo de producto
   resumen_region_producto <- datos %>%
@@ -59,8 +47,6 @@ analizar_dataset <- function(file_path) {
     summarise(Total_Units_Sold = sum(Units.Sold, na.rm = TRUE),
               Total.Revenue = sum(Total.Revenue, na.rm = TRUE)) %>%
     arrange(Region, desc(Total_Units_Sold))
-  print("Resumen por región y tipo de producto:")
-  print(resumen_region_producto)
   
   # Crear la aplicación Shiny
   shinyApp(
@@ -118,7 +104,7 @@ analizar_dataset <- function(file_path) {
         recomendacion <- resumen_region_producto %>% 
           filter(Region == input$region, Item.Type == input$producto) %>% 
           top_n(1, wt = Total_Units_Sold)
-        print(paste("En la región", input$region, "se recomienda el producto", input$producto, "con", recomendacion$Total_Units_Sold, "unidades vendidas."))
+        paste("En la región", input$region, "se recomienda el producto", input$producto, "con", recomendacion$Total_Units_Sold, "unidades vendidas.")
       })
     }
   )
