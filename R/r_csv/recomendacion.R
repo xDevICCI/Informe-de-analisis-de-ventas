@@ -82,7 +82,7 @@ analizar_dataset <- function(file_path) {
   print(resumen_region_producto)
   
   # Crear la aplicación Shiny
-  shinyApp(
+  app <- shinyApp(
     ui = fluidPage(
       titlePanel("Sistema de Recomendación de Productos"),
       sidebarLayout(
@@ -102,6 +102,11 @@ analizar_dataset <- function(file_path) {
       )
     ),
     server = function(input, output) {
+      
+      output$classInfo <- renderPrint({
+        class(app)  # Mostrar la clase del objeto app
+      })
+      
       output$barPlot <- renderPlot({
         datos_filtrados <- resumen_region_producto %>% filter(Region == input$region)
         ggplot(datos_filtrados, aes(x = reorder(Item.Type, -Total_Units_Sold), y = Total_Units_Sold, fill = Item.Type)) +
@@ -141,6 +146,8 @@ analizar_dataset <- function(file_path) {
       })
     }
   )
+  
+  runApp(app)  # Ejecutar la aplicación Shiny
 }
 
 # Llamar a la función con la ruta del archivo
