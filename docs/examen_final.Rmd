@@ -38,6 +38,81 @@ Aplicación Shiny
 	•	Gráfico de líneas de ingresos totales a lo largo del tiempo.
 	•	Recomendación basada en el tipo de producto más vendido en la región seleccionada.
 
+
+Uso de Librerías
+
+En este informe se utilizan tres librerías principales de R: dplyr, ggplot2, y shiny, cada una con un propósito específico para el análisis de datos y la creación de aplicaciones interactivas.
+
+dplyr
+
+dplyr es una librería potente para la manipulación de datos en R, que facilita la realización de operaciones complejas de manera eficiente y con una sintaxis clara.
+
+	•	Cargar datos: read.csv(file_path) importa datos desde un archivo CSV.
+	•	Renombrar columnas: gsub(" ", "_", names(datos)) elimina espacios en los nombres de las columnas.
+	•	Valores nulos: colSums(is.na(datos)) cuenta valores nulos en cada columna.
+	•	Muestreo: sample_n(100000) toma una muestra aleatoria para reducir el uso de memoria.
+	•	Agrupación y resumen: group_by() y summarise() agrupan datos y calculan estadísticas agregadas.
+	•	Ordenar: arrange() ordena los datos para mejor visualización.
+
+Ejemplo: 
+```{r setup, include=FALSE}
+resumen_region_producto <- datos %>%
+  group_by(Region, Item.Type) %>%
+  summarise(Total_Units_Sold = sum(Units.Sold, na.rm = TRUE),
+            Total_Revenue = sum(Total.Revenue, na.rm = TRUE)) %>%
+  arrange(Region, desc(Total_Units_Sold))
+```
+
+ggplot2
+
+ggplot2 es una librería avanzada de visualización de datos, que permite crear gráficos complejos y personalizables.
+
+	•	Inicializar gráfico: ggplot() establece la base para las visualizaciones.
+	•	Gráficos comunes: geom_bar() (barras), geom_histogram() (histogramas), geom_point() (dispersión), geom_line() (líneas).
+	•	Etiquetas: labs() añade títulos y etiquetas.
+	•	Estilo: theme() personaliza la apariencia.
+
+Ejemplo:
+
+```{r setup, include=FALSE}
+output$barPlot <- renderPlot({
+  datos_filtrados <- resumen_region_producto %>% filter(Region == input$region)
+  ggplot(datos_filtrados, aes(x = reorder(Item.Type, -Total_Units_Sold), y = Total_Units_Sold, fill = Item.Type)) +
+    geom_bar(stat = "identity") +
+    labs(title = paste("Ventas por Tipo de Producto en", input$region),
+         x = "Tipo de Producto", y = "Unidades Vendidas") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+})
+```
+
+shiny
+
+shiny permite construir aplicaciones web interactivas desde R, proporcionando una interfaz dinámica y reactiva.
+
+	•	Interfaz de usuario (UI):
+	•	fluidPage() crea una página adaptable.
+	•	titlePanel() añade un título.
+	•	sidebarLayout() organiza la barra lateral y el panel principal.
+	•	selectInput() crea menús desplegables.
+	•	tabsetPanel() organiza contenido en pestañas.
+	•	plotOutput() y verbatimTextOutput() reservan espacio para gráficos y texto.
+	•	Servidor:
+	•	renderPlot() renderiza gráficos.
+	•	renderPrint() muestra texto sin formato.
+
+Ejemplo:
+
+```{r setup, include=FALSE}
+output$barPlot <- renderPlot({
+  datos_filtrados <- resumen_region_producto %>% filter(Region == input$region)
+  ggplot(datos_filtrados, aes(x = reorder(Item.Type, -Total_Units_Sold), y = Total_Units_Sold, fill = Item.Type)) +
+    geom_bar(stat = "identity") +
+    labs(title = paste("Ventas por Tipo de Producto en", input$region),
+         x = "Tipo de Producto", y = "Unidades Vendidas") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+})
+```
+
 Código de la Función
 
 ```{r setup, include=FALSE}
